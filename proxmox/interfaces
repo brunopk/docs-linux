@@ -1,0 +1,40 @@
+auto lo
+iface lo inet loopback
+
+# Wifi interface autoconnect using wpa_supplicant.conf
+auto wlp1s0
+iface wlp1s0 inet static
+        address 192.168.0.2
+        netmask 255.255.255.0
+        gateway 192.168.0.1
+        dns-nameservers 1.1.1.1 8.8.8.8
+        wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
+
+# Virtual bridge network
+auto vmbr0
+iface vmbr0 inet static
+        address 10.1.1.1/24
+        bridge-ports none
+        bridge-stp off
+        bridge-fd 0
+
+        post-up echo 1 > /proc/sys/net/ipv4/ip_forward
+        post-up iptables -t nat -A POSTROUTING -s '10.1.1.0/24' -o wlp1s0 -j MASQUERADE
+        post-down iptables -t nat -D POSTROUTING -s '10.1.1.0/24' -o wlp1s0 -j MASQUERADE
+        post-up iptables -t raw -I PREROUTING -i fwbr+ -j CT --zone 1
+        post-down iptables -t raw -D PREROUTING -i fwbr+ -j CT --zone 1
+        
+        # VPN 
+        post-up ip route add 10.8.0.0/24 via 10.1.1.2
+        post-up iptables -t nat -A PREROUTING -i wlp1s0 -p udp --dport 51820 -j DNAT --to-destination 10.1.1.2:51820
+        post-down iptables -t nat -D PREROUTING -i wlp1s0 -p udp --dport 51820 -j DNAT --to-destination 10.1.1.2:51820
+        
+        # Nginx
+        post-up iptables -t nat -A PREROUTING -i wlp1s0 -p tcp --dport 80 -j DNAT --to-destination 10.1.1.4:80
+        post-down iptables -t nat -D PREROUTING -i wlp1s0 -p tcp --dport 80 -j DNAT --to-destination 10.1.1.4:80
+        post-up iptables -t nat -A PREROUTING -i wlp1s0 -p tcp --dport 443 -j DNAT --to-destination 10.1.1.4:443
+        post-down iptables -t nat -D PREROUTING -i wlp1s0 -p tcp --dport 443 -j DNAT --to-destination 10.1.1.4:443
+        
+        
+
+source /etc/network/interfaces.d/*
