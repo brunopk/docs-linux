@@ -392,7 +392,7 @@ To install and configure Nginx (Nginx Proxy Manager or NPM) follow these steps:
 ## DNS Server
 
 1. Install AdGuard Home as described in the [Getting started](https://adguard-dns.io/kb/es/adguard-home/getting-started/#installation) section of the official documentation.
-2. Change WiFi router configuration to use **10.1.1.6** as secondary DNS server (for primary set 8.8.8.8 or another one).
+2. Change WiFi router configuration to use **10.1.1.6** as **primary** DNS server (for primary set 8.8.8.8 or another one).
 3. If not added before, add a NAT rule in the `/etc/network/interfaces` of the **proxmox node** to forward TCP traffic on 80 to the corresponding VM and ports with AdGuard Home web GUI :
    
     ```interfaces
@@ -404,6 +404,12 @@ To install and configure Nginx (Nginx Proxy Manager or NPM) follow these steps:
    
 4. Go to *Filters > DNS Rewrites > Add DNS Rewrite* in the AdGuard Home web.
 5. Map the corresponding domains to the corresponding IPs th
+
+To check that AdGuard Home is working (resolves proxmox VMs and LXCs) :
+
+```bash
+dig @10.1.1.6 proxmox-vm.internal
+```
 
 ### Future improvements
 
