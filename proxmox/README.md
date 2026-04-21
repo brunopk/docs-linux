@@ -315,7 +315,7 @@ docker compose down
 
 -->
 
-## Creating a VM with Debian
+## Virtual machines (VM)
 
 1. Go to *local > ISO* through the local storage entry on the left panel.
 2. Click Download from URL and use an official Debian ISO.
