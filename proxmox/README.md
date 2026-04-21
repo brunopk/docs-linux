@@ -32,13 +32,15 @@
          
         - `post-up iptables` is for NAT configuration, `post-up ip` is for routing.
         
-        - **Check all NAT rules are set for the correct interface of the proxmox node (`-i` argument), for example in previous `/etc/network/interfaces` the corresponding interface is wlp1s0**.
+        - Check all NAT rules are set for the **correct interface** of the proxmox node (`-i` argument), for example in previous `/etc/network/interfaces` the corresponding interface is wlp1s0.
+        
+        -  Verify NAT rules for AdGuard Home are **before** NAT rules for Nginx Proxy Manager to avoid sending traffic for AdGuard Home to NPM (`-I PREROUTING 1` is to ensure rule priority).
 4. DNS LXC (AdGuard Home)
    
-    - Create a small LXC, static IP 10.1.1.3
+    - Create a small LXC, static IP 10.1.1.6
     - Install AdGuard Home
     - Define local DNS names for all your machines (e.g. wireguard.home → 10.1.1.2)
-    - Set your router's DHCP DNS to 10.1.1.3 → all LAN devices get it automatically
+    - Set your router's DHCP DNS to 10.1.1.6 → all LAN devices get it automatically
 6. VPN server
    
     - Create a small LXC for wg-easy + Wireguard, static IP 10.1.1.2
@@ -335,9 +337,17 @@ To install and configure Nginx (Nginx Proxy Manager or NPM) follow these steps:
 
 ## DNS Server
 
-TODO
+1. Install AdGuard Home as described in the [Getting started](https://adguard-dns.io/kb/es/adguard-home/getting-started/#installation) section of the official documentation.
+2. If not added before, add a NAT rule in the `/etc/network/interfaces` of the **proxmox node** to forward TCP traffic on 80 to the corresponding VM and ports with AdGuard Home web GUI :
+   
+    ```interfaces
+    post-up iptables -t nat -I PREROUTING 1 -i wlp1s0 -p tcp -d 10.1.1.6 --dport 80 -j ACCEPT
+    post-down iptables -t nat -D PREROUTING -i wlp1s0 -p tcp -d 10.1.1.6 --dport 80 -j ACCEPT
+    ```
 
-https://adguard-dns.io/kb/es/adguard-home/getting-started/#installation
+    This rules must be **before** rules for Nginx (NPM) to avoid using the same port.
+   
+TODO: continue
 
 ## References
 
@@ -349,5 +359,6 @@ https://adguard-dns.io/kb/es/adguard-home/getting-started/#installation
 - [Wireguard client installation](https://www.wireguard.com/install/)
 - [Debian ISOs](https://www.debian.org/download)
 - [Nginx Proxy Manager Full Setup Instructions](https://nginxproxymanager.com/setup/)
+- [AdGuard Home Getting started](https://adguard-dns.io/kb/es/adguard-home/getting-started/#installation)
 - Claude 😆
 - ChatGPT 😆 
