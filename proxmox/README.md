@@ -35,29 +35,43 @@
         - Check all NAT rules are set for the **correct interface** of the proxmox node (`-i` argument), for example in previous `/etc/network/interfaces` the corresponding interface is wlp1s0.
         
         -  Verify NAT rules for AdGuard Home are **before** NAT rules for Nginx Proxy Manager to avoid sending traffic for AdGuard Home to NPM (`-I PREROUTING 1` is to ensure rule priority).
-4. DNS LXC (AdGuard Home)
-   
-    - Create a small LXC, static IP 10.1.1.6
+5. Nginx Proxy Server (NPM)
+
+    - Create a *VM*, static IP **10.1.1.4**.
+    - Follow instructions in the [Nginx Proxy Manager](#nginx-proxy-manager) section.
+      
+6. DNS LXC (AdGuard Home)
+    
+    - Create a small LXC, static IP **10.1.1.6**
     - Install AdGuard Home
-    - Define local DNS names for all your machines (e.g. wireguard.home → 10.1.1.2)
-    - Set your router's DHCP DNS to 10.1.1.6 → all LAN devices get it automatically
-6. VPN server
+    - Define local DNS names for all your machines (e.g. wireguard.home → **10.1.1.2**)
+    - Set your router's DHCP DNS to **10.1.1.6** → all LAN devices get it automatically
+7. VPN server
    
-    - Create a small LXC for wg-easy + Wireguard, static IP 10.1.1.2
+    - Create a small LXC for wg-easy + Wireguard, static IP **10.1.1.2**
     - If using OpenVPN instead, enable TUN/TAP via Proxmox web UI (Features → TUN/TAP)
     - Follow instructions in [VPN](#section) to install wg-easy + Wireguard (both together).
     - Configure peers (one per client device — laptop, phone, etc.)
-    - Set DNS = 10.1.1.3 in each peer config → VPN clients resolve your local names automatically
+    - Set DNS = **10.1.1.6** in each peer config → VPN clients resolve your local names automatically
 
 8. Router
 
     - Add static route: 10.1.1.0/24 via 192.168.0.67 → LAN devices can reach your VMs
     - Port forward UDP 51820 → 192.168.0.67 → internet clients can reach WireGuard
-    - Set DHCP DNS to 10.1.1.3 → LAN devices use AdGuard
-9. Remaining VMs/LXCs
+    - Set DHCP DNS to **10.1.1.6** → LAN devices use AdGuard
 
-    - Assign static IPs from 10.1.1.10 upward via Proxmox web UI
-    - Register their names in AdGuard
+</br>
+
+For remaining VMs/LXCs :
+
+   - Assign static IPs from 10.1.1.10 upward via Proxmox web UI
+   - Register their names in AdGuard
+
+</br>
+
+> It's not mandatory to use the same IPs for all servers, it's possible to use other IPs
+
+</br>
 
 ## Public IP with DuckDNS
 
@@ -154,7 +168,8 @@ Instructions below explains how to set wg-easy with **Caddy** with automatically
     ```
 
     Replace the `wg.internal` with another domain if needed, **take into account that following steps may adapt to the new domain**.
-6. Test with `curl` from a real machine in LAN: 
+6. Connect to the VPN from another machine.
+7. Test with `curl` from a real machine in LAN: 
     ```
     curl -k https://wg.internal
     ```
@@ -169,9 +184,9 @@ Instructions below explains how to set wg-easy with **Caddy** with automatically
     
     `-v` for verbosity
     
-    If DNS server (AdGuard Home) was not configured, set `wg.internal` in `/etc/hosts` to point to 10.1.1.2 (LXC proxmox IP), assuming the WiFi router was previously configured to route traffic from 192.168.0.1/24 to 10.1.1.1/24 .
+    If DNS server (AdGuard Home) was not configured, set `wg.internal` in `/etc/hosts` to point to **10.1.1.2** (LXC proxmox IP), assuming the WiFi router was previously configured to route traffic from 192.168.0.1/24 to 10.1.1.1/24. Following this instructions, the wg-easy web GUI can be accessed **only** after connecting to the VPN.
     
-7. Check VPN interface inside Docker container :
+8. Check VPN interface inside Docker container :
 
    ```bash
     docker exec -it wg-easy sh
@@ -197,7 +212,7 @@ Instructions below explains how to set wg-easy with **Caddy** with automatically
     cat /etc/wireguard/wg0.conf
     ```
     
-11. Enter https://wg.internal and follow instructions there.
+10. Enter https://wg.internal and follow instructions there.
 
 ### Configuring a full access client
 
@@ -311,7 +326,7 @@ In case of installing a VM that for security reason is not apropiated to permit 
 - IP must be static, this is because proxmox node (the VM gateway) it's not configured for DHCP (remember the whole infrastructure is a bridged network through local WiFi so VMs are not directly connected to the WiFi router).
 - As the NoVNC don't support Ctrl + V, access to the VM through SSH as described in the [SSH root access](#ssh-root-access) section.
 
-## Nginx
+## Nginx Proxy Manager
 
 To install and configure Nginx (Nginx Proxy Manager or NPM) follow these steps:
 
@@ -344,7 +359,7 @@ To install and configure Nginx (Nginx Proxy Manager or NPM) follow these steps:
 ## DNS Server
 
 1. Install AdGuard Home as described in the [Getting started](https://adguard-dns.io/kb/es/adguard-home/getting-started/#installation) section of the official documentation.
-2. Change WiFi router configuration to use 10.1.1.6 as secondary DNS server (for primary set 8.8.8.8 or another one).
+2. Change WiFi router configuration to use **10.1.1.6** as secondary DNS server (for primary set 8.8.8.8 or another one).
 3. If not added before, add a NAT rule in the `/etc/network/interfaces` of the **proxmox node** to forward TCP traffic on 80 to the corresponding VM and ports with AdGuard Home web GUI :
    
     ```interfaces
