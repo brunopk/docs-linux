@@ -116,9 +116,15 @@
 
 ## VPN 
 
-### Configuring the server with Caddy as proxy
+Wireguard and wg-easy can be run as Docker containers, Wireguard for the VPN and wg-easy as a web UI. wg-easy should run with a proxy to provide **HTTPS** access to the UI. Official documentation explains how to it using Caddy another or Trefix as proxy but in order to be compatabile with instructions in [How to configure Proxmox through a WLAN](#how-to-configure-proxmox-through-a-wlan), particularly for NAT rules defined in `/etc/network/interfaces` of the proxmox node, wg-easy must be used with **Nginx Proxy Manager**.
 
-Wireguard and wg-easy can be run as Docker containers, Wireguard for the VPN and wg-easy as a web UI. wg-easy should run with a proxy to provide **HTTPS** access to the UI. One option is using Caddy and another option is using Trefix. Instructions below explains how to set wg-easy with **Caddy** with automatically created **self-signed SSL certificates** :
+### Configuring wg-easy with Nginx Proxy Manager as proxy for the web interface
+
+TODO 
+
+### Configuring wg-easy with Caddy as proxy for the web interface
+
+Instructions below explains how to set wg-easy with **Caddy** with automatically created **self-signed SSL certificates** :
 
 1. Install Docker.
 2. Follow instructions [here](https://wg-easy.github.io/wg-easy/v15.2/examples/tutorials/basic-installation/) to install wg-easy but creating the `docker-compose.yaml` as defined in [`/proxmox/wg-easy-and-caddy-docker-compose.yaml`](/proxmox/wg-easy-and-caddy-docker-compose.yaml).
@@ -208,7 +214,7 @@ Wireguard and wg-easy can be run as Docker containers, Wireguard for the VPN and
 - Configuration for `wg0` is in `/etc/wireguard/wg0.conf`
 - `AllowedIps` configuration in `/etc/wireguard/wg0.conf` defines what IPs can client takes, **not** what IPs can client access.
 - Due to how NAT rules are configured (refer to the `/etc/network/interfaces` in one of the steps of [proxmox_1.md](#how-to-configure-proxmox-through-a-wlan) section), the only way to access wg.internal is **connecting to the VPN**.
-- [Configuring the server with Caddy as proxy](#configuring-the-server-with-caddy-as-proxy) as the title says, explains how to configure wg-easy with Caddy as proxy to provide HTTPS access, another approach is using NPM.
+- [Configuring wg-easy with Caddy as proxy for the web interface](#configuring-wg-easy-with-caddy-as-proxy-for-the-web-interface) as the title says, explains how to configure wg-easy with Caddy as proxy to provide HTTPS access, another approach is using NPM.
 
 <!-- 
 TODO: explain how to add new restricted VPN clients
