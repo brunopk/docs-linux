@@ -256,9 +256,6 @@ Instructions below explains how to set wg-easy with **Caddy** with automatically
 2. Add one client with default configuration.
 3. Install the corresponding VPN [client](https://www.wireguard.com/install/) on client machine.
 
-### Future improvements
-- Avoid manually setting `/etc/hosts` by configuring a DNS server in a LXC
-
 ### Important 
 
 - Default Wireguard VPN interface (in its Docker container, *not* LXC network interfaces) is `wg0`
@@ -405,8 +402,12 @@ To install and configure Nginx (Nginx Proxy Manager or NPM) follow these steps:
 
     This rules must be **before** rules for Nginx (NPM) to avoid using the same port.
    
-TODO: continue
+4. Go to *Filters > DNS Rewrites > Add DNS Rewrite* in the AdGuard Home web.
+5. Map the corresponding domains to the corresponding IPs th
 
+### Future improvements
+
+- Automatically assign domain to IPs with the DHCP-based hostnames feature of AdGuard Home web GUI (*Settings > DHCP Settings*) 
 ## References
 
 - [Home Assistant: Proxmox VE 8.4 Quick Start Guide](https://www.derekseaman.com/2023/10/home-assistant-proxmox-ve-8-0-quick-start-guide-2.html)
