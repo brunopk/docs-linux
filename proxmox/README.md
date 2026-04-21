@@ -121,7 +121,7 @@
 Wireguard and wg-easy can be run as Docker containers, Wireguard for the VPN and wg-easy as a web UI. wg-easy should run with a proxy to provide **HTTPS** access to the UI. One option is using Caddy and another option is using Trefix. Instructions below explains how to set wg-easy with **Caddy** with automatically created **self-signed SSL certificates** :
 
 1. Install Docker.
-2. Follow instructions [here](https://wg-easy.github.io/wg-easy/v15.2/examples/tutorials/basic-installation/) to install wg-easy but creating the `docker-compose.yaml` as defined in [`/proxmox/wg-easy-docker-compose.yaml`](/proxmox/wg-easy-docker-compose.yaml).
+2. Follow instructions [here](https://wg-easy.github.io/wg-easy/v15.2/examples/tutorials/basic-installation/) to install wg-easy but creating the `docker-compose.yaml` as defined in [`/proxmox/wg-easy-and-caddy-docker-compose.yaml`](/proxmox/wg-easy-and-caddy-docker-compose.yaml).
 
     Important:
     
