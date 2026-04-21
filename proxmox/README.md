@@ -388,6 +388,18 @@ To install and configure Nginx (Nginx Proxy Manager or NPM) follow these steps:
 9. Install NPM as described in [official documentation](https://nginxproxymanager.com/setup/), replacing the `TZ` with the corresponding time zone (refer to [List of tz database time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones))
 10. Follow instructions in the [Creating your DuckDNS SSL Certificate](https://learntohomelab.com/docs/HomeLab-Series/EP26_nginxproxymanagerssl/#creating-your-duckdns-ssl-certificate) section of the [How to Setup The Nginx Proxy Manager and DuckDNS for Local SSL Certificates](https://learntohomelab.com/docs/HomeLab-Series/EP26_nginxproxymanagerssl/) blog article.
 
+</br>
+
+For Home Assistant, in order to allow requests from NPM the following configuration must be added to the `configuration.yaml` :
+
+```yaml
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 10.1.1.4
+```
+
+</br> 
 
 ## DNS Server
 
