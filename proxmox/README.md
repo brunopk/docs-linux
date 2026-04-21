@@ -1,6 +1,4 @@
-# Proxmox
-
-## How to configure Proxmox through a WLAN
+# How to configure Proxmox through a WLAN
 
 1. Install Proxmox as described in the [Home Assistant: Proxmox VE 8.4 Quick Start Guide](https://www.derekseaman.com/2023/10/home-assistant-proxmox-ve-8-0-quick-start-guide-2.html) blog article.
 2. In the Proxmox machine through the web GUI :
