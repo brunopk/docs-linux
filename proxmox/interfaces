@@ -28,6 +28,10 @@ iface vmbr0 inet static
         post-up ip route add 10.8.0.0/24 via 10.1.1.2
         post-up iptables -t nat -A PREROUTING -i wlp1s0 -p udp --dport 51820 -j DNAT --to-destination 10.1.1.2:51820
         post-down iptables -t nat -D PREROUTING -i wlp1s0 -p udp --dport 51820 -j DNAT --to-destination 10.1.1.2:51820
+
+        # AdGuard Home (DNS)
+        post-up iptables -t nat -I PREROUTING 1 -i wlp1s0 -p tcp -d 10.1.1.6 --dport 80 -j ACCEPT
+        post-down iptables -t nat -D PREROUTING -i wlp1s0 -p tcp -d 10.1.1.6 --dport 80 -j ACCEPT
         
         # Nginx
         post-up iptables -t nat -A PREROUTING -i wlp1s0 -p tcp --dport 80 -j DNAT --to-destination 10.1.1.4:80
