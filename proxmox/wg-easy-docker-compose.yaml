@@ -1,4 +1,6 @@
 # Based on https://raw.githubusercontent.com/wg-easy/wg-easy/master/docker-compose.yml
+# The web GUI will be protected through an external Nginx Proxy Manager instance 
+
 volumes:
   etc_wireguard:
 
@@ -8,7 +10,7 @@ services:
     #  Optional:
     #  - PORT=51821
     #  - HOST=0.0.0.0
-      - INSECURE=false
+      - INSECURE=true
 
     image: ghcr.io/wg-easy/wg-easy:15
     container_name: wg-easy
