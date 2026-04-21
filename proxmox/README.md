@@ -134,7 +134,43 @@ Wireguard and wg-easy can be run as Docker containers, Wireguard for the VPN and
 
 ### Configuring wg-easy with Nginx Proxy Manager as proxy for the web interface
 
-TODO 
+1. Install Docker.
+2. Follow instructions [here](https://wg-easy.github.io/wg-easy/v15.2/examples/tutorials/basic-installation/) to install wg-easy but creating the `docker-compose.yaml` as defined in [`/proxmox/wg-easy-docker-compose.yaml`](/proxmox/wg-easy-docker-compose.yaml).
+
+    Important:
+    
+    - 10.42.42.0/24 IP range is for Docker **not** for the VPN.
+    
+    - Use `compose.yaml`, `compose.yml`, `docker-compose.yaml`, or `docker-compose.yml` so the docker compose up command can automatically detect and use the file.
+    
+3. Connect to the VPN from another machine.   
+4. Check VPN interface inside Docker container :
+
+   ```bash
+    docker exec -it wg-easy sh
+    ```
+
+    and then:
+
+    ```bash
+    ip link
+    ```
+
+    Check the `wg0` interface for VPN is created.
+
+5. Check VPN IP range (inside Docker container) :
+    
+    ```bash
+    docker exec -it wg-easy sh
+    ```
+
+    and then check wireguard configuration in `/etc/wireguard/wg0.conf`:
+
+    ```bash
+    cat /etc/wireguard/wg0.conf
+    ```
+6. Follow instructions in the [Nginx Proxy Manager](#nginx-proxy-manager) section to redirect traffic via HTTPS from NPM to 10.1.1.2:51821 for the web GUI.
+    
 
 ### Configuring wg-easy with Caddy as proxy for the web interface
 
