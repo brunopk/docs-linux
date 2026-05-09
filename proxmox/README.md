@@ -333,7 +333,7 @@ docker compose down
     echo "nameserver 8.8.8.8" > /etc/resolv.conf
     ```
 
-### SSH root access
+## SSH root access
 
 In case of installing a VM that for security reason is not apropiated to permit `root` access through SSH (for example for a public Nginx server) and it's necessary to have clipboard support (NoVNC console provided by Proxmox don't have clipboard support), follow these steps :
 
