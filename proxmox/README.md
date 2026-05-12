@@ -26,12 +26,14 @@
         ```
     4. Use the scan feature of `wpa_cli` to find the SSID for your Wi-Fi network.
     5. Follow steps 1 to 3 in [Guide: How to configure Proxmox with WiFi](https://blog.vivekkaushik.com/guide-how-to-configure-proxmox-with-wifi) : 
-        
-         - Use previously found WiFi SSID and password in `/etc/wpa_supplicant/wpa_supplicant.conf`.
+  
+        - Use previously found WiFi SSID and password in `/etc/wpa_supplicant/wpa_supplicant.conf`.
 
-        - Replace `wlp1s0` with the corresponding network interface in all `-i` arguments of the NAT rules in `/etc/network/interfaces`.
+        - Copy [`/proxmox/interfaces`](/proxmox/interfaces) to `/etc/network/interfaces` :
         
-        -  Verify NAT rules for AdGuard Home are **before** NAT rules for Nginx Proxy Manager to avoid sending traffic for AdGuard Home to NPM (`-I PREROUTING 1` is to ensure rule priority).
+           - Replace `wlp1s0` with the corresponding network interface in all `-i` arguments of the NAT rules in `/etc/network/interfaces`.
+        
+           -  Verify NAT rules for AdGuard Home are **before** NAT rules for Nginx Proxy Manager to avoid sending traffic for AdGuard Home to NPM (`-I PREROUTING 1` is to ensure rule priority).
 5. Nginx Proxy Server (NPM)
 
     - Create a *VM*, static IP **10.1.1.4**.
