@@ -143,17 +143,6 @@ Wireguard and wg-easy can be run as Docker containers, Wireguard for the VPN and
     - Use `compose.yaml`, `compose.yml`, `docker-compose.yaml`, or `docker-compose.yml` so the docker compose up command can automatically detect and use the file.
     
 3. Connect to the VPN from another machine.   
-5. Check VPN IP range (inside Docker container) :
-    
-    ```bash
-    docker exec -it wg-easy sh
-    ```
-
-    and then check wireguard configuration in `/etc/wireguard/wg0.conf`:
-
-    ```bash
-    cat /etc/wireguard/wg0.conf
-    ```
 6. Follow instructions in the [Nginx Proxy Manager](#nginx-proxy-manager) section to redirect traffic via HTTPS from NPM to 10.1.1.2:51821 for the web GUI.
     
 
@@ -206,18 +195,6 @@ Instructions below explains how to set wg-easy with **Caddy** with automatically
     `-v` for verbosity
     
     If DNS server (AdGuard Home) was not configured, set `wg.internal` in `/etc/hosts` to point to **10.1.1.2** (LXC proxmox IP), assuming the WiFi router was previously configured to route traffic from 192.168.0.1/24 to 10.1.1.1/24. Following this instructions, the wg-easy web GUI can be accessed **only** after connecting to the VPN.
-9. Check VPN IP range (inside Docker container) :
-    
-    ```bash
-    docker exec -it wg-easy sh
-    ```
-
-    and then check wireguard configuration in `/etc/wireguard/wg0.conf`:
-
-    ```bash
-    cat /etc/wireguard/wg0.conf
-    ```
-    
 10. Enter https://wg.internal and follow instructions there.
 
 ### Configuring a full access client
@@ -399,6 +376,7 @@ dig @10.1.1.6 proxmox-vm.internal
 
 - VPN not working :
     1. Check VPN interface:
+       
         Enter in Docker container:
 
         ```bash
@@ -412,7 +390,22 @@ dig @10.1.1.6 proxmox-vm.internal
         ```
 
         Check the `wg0` interface for VPN is created.
-- 
+    3. Check IP range for clients:
+ 
+        Enter in Docker container:    
+
+        ```bash
+        docker exec -it wg-easy sh
+        ```
+
+        and then check wireguard configuration in `/etc/wireguard/wg0.conf`:
+
+        ```bash
+        cat /etc/wireguard/wg0.conf
+        ```
+
+        By default it should be **10.8.0.0/24**.
+
 ## Notes
 
 - In `/etc/network/interfaces`, `post-up iptables` is for NAT configuration, `post-up ip` is for routing.
