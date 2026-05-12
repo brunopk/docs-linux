@@ -25,12 +25,11 @@
         wpa_supplicant -B -i wlp1s0 -c /etc/wpa_supplicant/wpa_supplicant.conf
         ```
     4. Use the scan feature of `wpa_cli` to find the SSID for your Wi-Fi network.
-    5. Follow steps 1 to 3 in [this](https://blog.vivekkaushik.com/guide-how-to-configure-proxmox-with-wifi) blog with previously found SSID and Wi-Fi network password but using interfaces configuration defined in **[`/proxmox/interfaces`](/proxmox/interfaces)** configuration. 
-
-         
-        - `post-up iptables` is for NAT configuration, `post-up ip` is for routing.
+    5. Follow steps 1 to 3 in [Guide: How to configure Proxmox with WiFi](https://blog.vivekkaushik.com/guide-how-to-configure-proxmox-with-wifi) : 
         
-        - Check all NAT rules are set for the **correct interface** of the proxmox node (`-i` argument), for example in previous `/etc/network/interfaces` the corresponding interface is wlp1s0.
+         - Use previously found WiFi SSID and password in `/etc/wpa_supplicant/wpa_supplicant.conf`.
+
+        - Replace `wlp1s0` with the corresponding network interface in all `-i` arguments of the NAT rules in `/etc/network/interfaces`.
         
         -  Verify NAT rules for AdGuard Home are **before** NAT rules for Nginx Proxy Manager to avoid sending traffic for AdGuard Home to NPM (`-I PREROUTING 1` is to ensure rule priority).
 5. Nginx Proxy Server (NPM)
@@ -422,6 +421,11 @@ dig @10.1.1.6 proxmox-vm.internal
 ### Future improvements
 
 - Automatically assign domain to IPs with the DHCP-based hostnames feature of AdGuard Home web GUI (*Settings > DHCP Settings*) 
+
+## Notes
+
+- In `/etc/network/interfaces`, `post-up iptables` is for NAT configuration, `post-up ip` is for routing.
+
 ## References
 
 - [Home Assistant: Proxmox VE 8.4 Quick Start Guide](https://www.derekseaman.com/2023/10/home-assistant-proxmox-ve-8-0-quick-start-guide-2.html)
