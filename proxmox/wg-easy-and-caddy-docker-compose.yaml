@@ -1,6 +1,6 @@
 volumes:
       etc_wireguard:
-      caddy_date:
+      caddy_data:
       caddy_config:
 
 services:
