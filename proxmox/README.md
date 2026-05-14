@@ -31,14 +31,14 @@
 
         - Copy [`/proxmox/interfaces`](/proxmox/interfaces) to `/etc/network/interfaces` :
 
-            - Replace `wlp1s0` with **the corresponding network interface** in all `-i` arguments of the NAT rules in `/etc/network/interfaces`.
+            - Replace `wlp1s0` with **the corresponding network interface** in all `-i` arguments of the NAT rules.
             
             -  Verify NAT rules for AdGuard Home are **before** NAT rules for NPM to avoid sending traffic for AdGuard Home to NPM (`-I PREROUTING 1` is to ensure rule priority).
 
             - `post-up iptables` is for NAT configuration, `post-up ip` is for routing.
 5. NPM
     - Create a *VM*, static IP **10.1.1.4**.
-    - Follow instructions in the [NPM](#npm) section.
+    - Follow instructions in the [Nginx Proxy Manager](#nginx-proxy-manager) section.
       
 6. DNS LXC (AdGuard Home)
     
@@ -50,7 +50,7 @@
    
     - Create a small LXC for wg-easy and Wireguard, static IP **10.1.1.2**
     - If using OpenVPN instead, enable TUN/TAP via Proxmox web UI (Features → TUN/TAP)
-    - Follow instructions in [VPN](#section) to install wg-easy + Wireguard (both together).
+    - Follow instructions in [VPN](#section) to install wg-easy.
     - Configure peers (one per client device — laptop, phone, etc.)
     - Set DNS = **10.1.1.6** in each peer config → VPN clients resolve your local names automatically
 
@@ -66,21 +66,21 @@
 
 </br>
 
-## Creating a new VMs
+## Creating a new VM
 
 To create a new VM :
 
 1. Go to *local > ISO* through the local storage entry on the left panel.
 2. Click Download from URL and use an official Debian ISO.
 
-If you cannot resolve package URLs during Debian installation (or any Linux distro):
+**If package URLs cannot be resolved during Debian installation (or any Linux distro)**:
 
 1. Open Console > no VNC`
 2. Switch to the Debian installer console with Ctrl+Alt+F2`
 3. Set DNS:
 
     ```bash
-    echo "nameserver 10.1.1.6" > /etc/resolv.conf
+    echo "nameserver 8.8.8.8" > /etc/resolv.conf
     ```
 4. Verify resolution with `ping google.com`.
 5. Return to the installer with Ctrl+Alt+F1
@@ -94,7 +94,7 @@ If you cannot resolve package URLs during Debian installation (or any Linux dist
     ```bash
     echo "nameserver 10.1.1.6" > /etc/resolv.conf
     ```
-- As NoVNC console provided by Proxmox doesn't provide clipboard support, connect through SSH as a workaround.
+- Since Proxmox's NoVNC console doesn't support clipboard operations, use SSH as a workaround.
 
 <br>
 
@@ -116,7 +116,7 @@ If you cannot resolve package URLs during Debian installation (or any Linux dist
 > If you plan to access it from other VMs, LXCs, or physical machines using domain names, register it in AdGuard Home (10.1.1.6).
 
 
-## External access through a DuckDNS public domain
+## External access through a public domain
 
 1. Create the folder to store a file with the last IP :
    
@@ -240,7 +240,7 @@ docker compose down
 
 -->
 
-## NPM
+## Nginx Proxy Manager
 
 To install and configure NPM follow these steps:
 
@@ -267,7 +267,10 @@ To install and configure NPM follow these steps:
     ``` 
 8. [Install Docker](https://docs.docker.com/engine/install/debian/). 
 9. Install NPM as described in [official documentation](https://nginxproxymanager.com/setup/), replacing the `TZ` with the corresponding time zone (refer to [List of tz database time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones))
-10. Follow instructions in the [Creating your DuckDNS SSL Certificate](https://learntohomelab.com/docs/HomeLab-Series/EP26_nginxproxymanagerssl/#creating-your-duckdns-ssl-certificate) section of the [How to Setup The Nginx Proxy Manager and DuckDNS for Local SSL Certificates](https://learntohomelab.com/docs/HomeLab-Series/EP26_nginxproxymanagerssl/) blog article.
+
+<br>
+
+> Follow instructions in the [Creating your DuckDNS SSL Certificate](https://learntohomelab.com/docs/HomeLab-Series/EP26_nginxproxymanagerssl/#creating-your-duckdns-ssl-certificate) section of the [How to Setup The Nginx Proxy Manager and DuckDNS for Local SSL Certificates](https://learntohomelab.com/docs/HomeLab-Series/EP26_nginxproxymanagerssl/) blog article to provide HTTPS access to a VM or LXC.
 
 </br>
 
@@ -275,7 +278,7 @@ To install and configure NPM follow these steps:
 
 1. Install AdGuard Home as described in the [Getting started](https://adguard-dns.io/kb/es/adguard-home/getting-started/#installation) section of the official documentation.
 2. Change WiFi router configuration to use **10.1.1.6** as **primary** DNS server (for primary set 8.8.8.8 or another one).
-3. If not added before, add a NAT rule in the `/etc/network/interfaces` of the **proxmox node** to forward TCP traffic on 80 to the corresponding VM and ports with AdGuard Home web GUI :
+3. If not added before, add a NAT rule in the `/etc/network/interfaces` of the **Proxmox node** to forward TCP traffic on 80 to the corresponding VM and ports with AdGuard Home web GUI :
    
     ```interfaces
     post-up iptables -t nat -I PREROUTING 1 -i wlp1s0 -p tcp -d 10.1.1.6 --dport 80 -j ACCEPT
@@ -286,12 +289,6 @@ To install and configure NPM follow these steps:
    
 4. Go to *Filters > DNS Rewrites > Add DNS Rewrite* in the AdGuard Home web.
 5. Map the corresponding domains to the corresponding IPs th
-
-To check that AdGuard Home is working (resolves proxmox VMs and LXCs) :
-
-```bash
-dig @10.1.1.6 proxmox-vm.internal
-```
 
 **After creating any VM or LXC, set the DNS server**:
 
@@ -416,6 +413,28 @@ To completely delete Docker containers (containers and volumes) created with `do
 ```bash
 docker compose down -v
 ```
+
+### Domains are not being resolved 
+
+Check that AdGuard Home is working (resolves Proxmox VMs and LXCs) with `dig`:
+
+```bash
+dig @10.1.1.6 proxmox-vm.internal
+```
+
+Sometimes DNS caches are outdated, for example it MacOS it can be flushed with : 
+
+```bash
+sudo dscacheutil -flushcache
+```
+
+and : 
+
+```bash
+sudo killall -HUP mDNSResponder
+```
+
+If it's a Linux physical machine or VM/LXC, verify DNS server (10.1.1.6) is set in `/etc/resolv.conf`.
 
 ## Future improvements
 
