@@ -1,0 +1,13 @@
+# Caddyfile
+
+{
+        # setup your email address
+        email yourmail@mail.com
+}
+
+wg-easy.internal {
+        # since the container will share the network with wg-easy
+        # we can use the proper container name
+        reverse_proxy wg-easy:51821
+        tls internal
+}
