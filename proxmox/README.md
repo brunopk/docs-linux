@@ -309,10 +309,6 @@ http:
 
 ## Troubleshooting 
 
-### Cannot access to any domain in the internal network
-
-Verify DNS server (10.1.1.6) is set in `/etc/resolv.conf`.
-
 ### SSH Permission denied (publickey)
 
 
