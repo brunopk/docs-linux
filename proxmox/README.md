@@ -27,17 +27,18 @@
     4. Use the scan feature of `wpa_cli` to find the SSID for your Wi-Fi network.
     5. Follow steps 1 to 3 in [Guide: How to configure Proxmox with WiFi](https://blog.vivekkaushik.com/guide-how-to-configure-proxmox-with-wifi) : 
   
-        - Use previously found WiFi SSID and password in `/etc/wpa_supplicant/wpa_supplicant.conf`.
+        - **Use previously found WiFi SSID and password** in `/etc/wpa_supplicant/wpa_supplicant.conf`.
 
         - Copy [`/proxmox/interfaces`](/proxmox/interfaces) to `/etc/network/interfaces` :
-        
-           - Replace `wlp1s0` with the corresponding network interface in all `-i` arguments of the NAT rules in `/etc/network/interfaces`.
-        
-           -  Verify NAT rules for AdGuard Home are **before** NAT rules for Nginx Proxy Manager to avoid sending traffic for AdGuard Home to NPM (`-I PREROUTING 1` is to ensure rule priority).
-5. Nginx Proxy Server (NPM)
 
+            - Replace `wlp1s0` with **the corresponding network interface** in all `-i` arguments of the NAT rules in `/etc/network/interfaces`.
+            
+            -  Verify NAT rules for AdGuard Home are **before** NAT rules for NPM to avoid sending traffic for AdGuard Home to NPM (`-I PREROUTING 1` is to ensure rule priority).
+
+            - `post-up iptables` is for NAT configuration, `post-up ip` is for routing.
+5. NPM
     - Create a *VM*, static IP **10.1.1.4**.
-    - Follow instructions in the [Nginx Proxy Manager](#nginx-proxy-manager) section.
+    - Follow instructions in the [NPM](#npm) section.
       
 6. DNS LXC (AdGuard Home)
     
@@ -47,7 +48,7 @@
     - Set your router's DHCP DNS to **10.1.1.6** → all LAN devices get it automatically
 7. VPN server
    
-    - Create a small LXC for wg-easy + Wireguard, static IP **10.1.1.2**
+    - Create a small LXC for wg-easy and Wireguard, static IP **10.1.1.2**
     - If using OpenVPN instead, enable TUN/TAP via Proxmox web UI (Features → TUN/TAP)
     - Follow instructions in [VPN](#section) to install wg-easy + Wireguard (both together).
     - Configure peers (one per client device — laptop, phone, etc.)
@@ -61,18 +62,61 @@
 
 </br>
 
-For remaining VMs/LXCs :
-
-   - Assign static IPs from 10.1.1.10 upward via Proxmox web UI
-   - Register their names in AdGuard
+> IPs are representative; just be consistent everywhere.
 
 </br>
 
-> It's not mandatory to use the same IPs for all servers, it's possible to use other IPs
+## Creating a new VMs
 
-</br>
+To create a new VM :
 
-## Public IP with DuckDNS
+1. Go to *local > ISO* through the local storage entry on the left panel.
+2. Click Download from URL and use an official Debian ISO.
+
+If you cannot resolve package URLs during Debian installation (or any Linux distro):
+
+1. Open Console > no VNC`
+2. Switch to the Debian installer console with Ctrl+Alt+F2`
+3. Set DNS:
+
+    ```bash
+    echo "nameserver 10.1.1.6" > /etc/resolv.conf
+    ```
+4. Verify resolution with `ping google.com`.
+5. Return to the installer with Ctrl+Alt+F1
+
+<br>
+
+**After creating a new VM :**
+
+- **Assign static IP via Proxmox web UI.**
+- **Set DNS server**:
+    ```bash
+    echo "nameserver 10.1.1.6" > /etc/resolv.conf
+    ```
+- As NoVNC console provided by Proxmox doesn't provide clipboard support, connect through SSH as a workaround.
+
+<br>
+
+> If you plan to access it from other VMs, LXCs, or physical machines using domain names, register it in AdGuard Home (10.1.1.6).
+
+
+## Creating a new LXC
+
+**After creating a new LXC :**
+
+- **Assign static IP via Proxmox web UI.**
+- **Set DNS server**:
+    ```bash
+    echo "nameserver 10.1.1.6" > /etc/resolv.conf
+    ```
+
+<br>
+
+> If you plan to access it from other VMs, LXCs, or physical machines using domain names, register it in AdGuard Home (10.1.1.6).
+
+
+## External access through a DuckDNS public domain
 
 1. Create the folder to store a file with the last IP :
    
@@ -129,90 +173,26 @@ For remaining VMs/LXCs :
 
 ## VPN 
 
-Wireguard and wg-easy can be run as Docker containers, Wireguard for the VPN and wg-easy as a web UI. wg-easy should run with a proxy to provide **HTTPS** access to the UI. Official documentation explains how to it using Caddy or Trefix as proxy but in order to work with NAT rules defined for the Proxmox node (refer to [How to configure Proxmox through a WLAN](#how-to-configure-proxmox-through-a-wlan) section above) it must be done with **Nginx Proxy Manager**.
-
-### Configuring wg-easy with Nginx Proxy Manager as proxy for the web interface
+Wireguard and wg-easy can be run as Docker containers, Wireguard for the VPN and wg-easy for the GUI. For security reason official documentation recommends running wg-easy with a proxy to provide **HTTPS** access. Official documentation explains how to it using Caddy or Trefix : 
 
 1. Install Docker.
-2. Follow instructions [here](https://wg-easy.github.io/wg-easy/v15.2/examples/tutorials/basic-installation/) to install wg-easy but creating the `docker-compose.yaml` as defined in [`/proxmox/wg-easy-docker-compose.yaml`](/proxmox/wg-easy-docker-compose.yaml).
+2. Follow instructions in [wg-easy basic installation](https://wg-easy.github.io/wg-easy/v15.2/examples/tutorials/basic-installation/) guide with these changes before starting containers : 
 
-    Important:
-    
-    - 10.42.42.0/24 IP range is for Docker **not** for the VPN.
-    
-    - Use `compose.yaml`, `compose.yml`, `docker-compose.yaml`, or `docker-compose.yml` so the docker compose up command can automatically detect and use the file.
-    
-3. Connect to the VPN from another machine.   
-6. Follow instructions in the [Nginx Proxy Manager](#nginx-proxy-manager) section to redirect traffic via HTTPS from NPM to 10.1.1.2:51821 for the web GUI.
-    
+    - Copy [`wg-easy-and-caddy-docker-compose.yaml`](/proxmox/wg-easy-and-caddy-docker-compose.yaml) to `docker-compose.yaml` (or `compose.yaml` / `compose.yml`).
 
-### Configuring wg-easy with Caddy as proxy for the web interface
+    - Copy [`Caddyfile`](/proxmox/Caddyfile) to the **same** folder as the compose file :
 
-Instructions below explains how to set wg-easy with **Caddy** with automatically created **self-signed SSL certificates** :
+        - Replace `yourmail@mail.com` with you mail address. 
 
-1. Install Docker.
-2. Follow instructions [here](https://wg-easy.github.io/wg-easy/v15.2/examples/tutorials/basic-installation/) to install wg-easy but creating the `docker-compose.yaml` as defined in [`/proxmox/wg-easy-and-caddy-docker-compose.yaml`](/proxmox/wg-easy-and-caddy-docker-compose.yaml).
+        - Replace `wg-easy.internal` with the domain name defined in AdGuardHome for the LXC/VM running wg-easy.
+10. Enter **https://wg-easy.internal** and follow the setup instructions.
 
-    Important:
-    
-    - 10.42.42.0/24 IP range is for Docker **not** for the VPN.
-    
-    - Use `compose.yaml`, `compose.yml`, `docker-compose.yaml`, or `docker-compose.yml` so the docker compose up command can automatically detect and use the file.
-    
-4. Create Caddy configuration `Caddyfile` in the **same** folder as the Docker compose YML :
 
-    ```
-    # Caddyfile
-    
-    {
-            # setup your email address
-            email mail@example.com
-    }
-    
-    wg.internal {
-            # since the container will share the network with wg-easy
-            # we can use the proper container name
-            reverse_proxy wg-easy.internal:51821
-            tls internal
-    }
-    ```
+Notes :
 
-    Replace the `wg.internal` with another domain if needed, **take into account that following steps may adapt to the new domain**.
-6. Connect to the VPN from another machine.
-7. Test with `curl` from a real machine in LAN: 
-    ```
-    curl -k https://wg.internal
-    ```
-
-    or
-
-    ```
-    curl -vk https://ng.internal
-    ```
-
-    `-k` ignore SSL validation 
-    
-    `-v` for verbosity
-    
-    If DNS server (AdGuard Home) was not configured, set `wg.internal` in `/etc/hosts` to point to **10.1.1.2** (LXC proxmox IP), assuming the WiFi router was previously configured to route traffic from 192.168.0.1/24 to 10.1.1.1/24. Following this instructions, the wg-easy web GUI can be accessed **only** after connecting to the VPN.
-10. Enter https://wg.internal and follow instructions there.
-
-### Configuring a full access client
-
-1. Enter https://wg.internal
-2. Add one client with default configuration.
-3. Install the corresponding VPN [client](https://www.wireguard.com/install/) on client machine.
-
-### Important 
-
-- Default Wireguard VPN interface (in its Docker container, *not* LXC network interfaces) is `wg0`
-- Configuration for `wg0` is in `/etc/wireguard/wg0.conf`
+- Default Wireguard VPN interface is `wg0`.
+- Configuration for `wg0` is in `/etc/wireguard/wg0.conf`.
 - `AllowedIps` configuration in `/etc/wireguard/wg0.conf` defines what IPs can client takes, **not** what IPs can client access.
-
-<!-- 
-TODO: explain how to add new restricted VPN clients
-TODO: configure wg-easy with NPM as proxy, remove all caddy configurations in Docker compose YAML
--->
 
 <!--
 
@@ -260,53 +240,9 @@ docker compose down
 
 -->
 
-## Virtual machines (VM)
+## NPM
 
-1. Go to *local > ISO* through the local storage entry on the left panel.
-2. Click Download from URL and use an official Debian ISO.
-3. Before installing any package : 
-    1. Enter to *Console > no VNC*
-    2. Enter in Debian installation console with *Ctrl + Alt + F2*.
-    3. Set the DNS server:
-       
-        ```bash
-        echo "nameserver 8.8.8.8" > /etc/resolv.conf
-        ```
-    5. Check with `ping google.com` that domains are being resolved correctly.
-    6. Return to installation with *Ctrl + Alt + F1*.
-6. After installing and booting into Debian, set DNS server :
-   
-    ```bash
-    echo "nameserver 8.8.8.8" > /etc/resolv.conf
-    ```
-
-## SSH root access
-
-In case of installing a VM that for security reason is not apropiated to permit `root` access through SSH (for example for a public Nginx server) and it's necessary to have clipboard support (NoVNC console provided by Proxmox don't have clipboard support), follow these steps :
-
-1. Edit `/etc/ssh/sshd_config` with this configuration:
-   
-    ```
-    PasswordAuthentication yes
-    PermitRootLogin yes
-    ```
-3. Reset SSH service :
-   
-    ```bash
-    systemctl restart ssh
-    ```
-6. Access through SSH from another machine to do required tasks.
-7. Comment out previously changes in `/etc/ssh/sshd_config`.
-8. Reset SSH service again.
-
-### Important
-
-- IP must be static, this is because proxmox node (the VM gateway) it's not configured for DHCP (remember the whole infrastructure is a bridged network through local WiFi so VMs are not directly connected to the WiFi router).
-- As the NoVNC don't support Ctrl + V, access to the VM through SSH as described in the [SSH root access](#ssh-root-access) section.
-
-## Nginx Proxy Manager
-
-To install and configure Nginx (Nginx Proxy Manager or NPM) follow these steps:
+To install and configure NPM follow these steps:
 
 1. Add port forwarding rule in **router** (LAN) to send TCP traffic on port 443 to the Proxmox node LAN IP in the same port.
 2. If not added before, add a NAT rule in the `/etc/network/interfaces` of the **proxmox node** to forward TCP traffic on port 443 and 80 to the corresponding VM and ports with Nginx :
@@ -335,17 +271,6 @@ To install and configure Nginx (Nginx Proxy Manager or NPM) follow these steps:
 
 </br>
 
-For Home Assistant, in order to allow requests from NPM the following configuration must be added to the `configuration.yaml` :
-
-```yaml
-http:
-  use_x_forwarded_for: true
-  trusted_proxies:
-    - 10.1.1.4
-```
-
-</br> 
-
 ## DNS Server
 
 1. Install AdGuard Home as described in the [Getting started](https://adguard-dns.io/kb/es/adguard-home/getting-started/#installation) section of the official documentation.
@@ -357,7 +282,7 @@ http:
     post-down iptables -t nat -D PREROUTING -i wlp1s0 -p tcp -d 10.1.1.6 --dport 80 -j ACCEPT
     ```
 
-    This rules must be **before** rules for Nginx (NPM) to avoid using the same port.
+    This rules must be **before** rules for NPM to avoid using the same port.
    
 4. Go to *Filters > DNS Rewrites > Add DNS Rewrite* in the AdGuard Home web.
 5. Map the corresponding domains to the corresponding IPs th
@@ -368,37 +293,75 @@ To check that AdGuard Home is working (resolves proxmox VMs and LXCs) :
 dig @10.1.1.6 proxmox-vm.internal
 ```
 
-### Future improvements
+**After creating any VM or LXC, set the DNS server**:
 
-- Automatically assign domain to IPs with the DHCP-based hostnames feature of AdGuard Home web GUI (*Settings > DHCP Settings*) 
+```bash
+echo "nameserver 8.8.8.8" > /etc/resolv.conf
+```
+
+## Home Assistant
+
+For Home Assistant, in order **to allow requests from NPM**, the following configuration must be added to the `configuration.yaml` :
+
+```yaml
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 10.1.1.4
+```
 
 ## Troubleshooting 
 
-- VPN not working :
-    1. Check VPN interface:
-       
-        Enter in Docker container:
+### Cannot access to any domain in the internal network
+
+Verify DNS server (10.1.1.6) is set in `/etc/resolv.conf`.
+
+### SSH Permission denied (publickey)
+
+
+1. Edit `/etc/ssh/sshd_config` with this configuration:
+   
+    ```
+    PasswordAuthentication yes
+    PermitRootLogin yes
+    ```
+3. Reset SSH service :
+   
+    ```bash
+    systemctl restart ssh
+    ```
+6. Access through SSH from another machine to do required tasks.
+7. Comment out previously changes in `/etc/ssh/sshd_config`.
+8. Reset SSH service again.
+
+
+> Revert the previous configuration as soon as posible, it's not recommended to permit `root` access through SSH.
+
+### VPN not working
+
+- Check VPN interface:
+    
+    1. Enter in Docker container:
 
         ```bash
         docker exec -it wg-easy sh
         ```
 
-        and then:
+    2. Verify the `wg0` interface for VPN is created:
 
         ```bash
         ip link
         ```
 
-        Check the `wg0` interface for VPN is created.
-    3. Check IP range for clients:
- 
-        Enter in Docker container:    
+- Check IP range for clients:
+
+    1. Enter in Docker container:    
 
         ```bash
         docker exec -it wg-easy sh
         ```
 
-        and then check wireguard configuration in `/etc/wireguard/wg0.conf`:
+    2. Check VPN client IPs in `/etc/wireguard/wg0.conf`:
 
         ```bash
         cat /etc/wireguard/wg0.conf
@@ -406,9 +369,57 @@ dig @10.1.1.6 proxmox-vm.internal
 
         By default it should be **10.8.0.0/24**.
 
-## Notes
+### Cannot access to the wg-easy web page
 
-- In `/etc/network/interfaces`, `post-up iptables` is for NAT configuration, `post-up ip` is for routing.
+Test with it with `curl`:
+
+```bash
+curl -k https://wg.internal
+```
+
+or
+
+```bash
+curl -vk https://wg-easy.internal
+```
+
+If `curl` returns something like this : 
+
+```
+*   Trying 10.1.1.2:443...
+* Connected to wg-easy.internal (10.1.1.2) port 443 (#0)
+* ALPN, offering h2
+* ALPN, offering http/1.1
+* successfully set certificate verify locations:
+*  CAfile: /etc/ssl/cert.pem
+*  CApath: none
+* (304) (OUT), TLS handshake, Client hello (1):
+* error:1404B438:SSL routines:ST_CONNECT:tlsv1 alert internal error
+* Closing connection 0
+curl: (35) error:1404B438:SSL routines:ST_CONNECT:tlsv1 alert internal error
+```
+
+It means the TCP connection succeeded (routing + DNS are fine), but the TLS handshake failed on the server side : 
+
+- Verify the `Caddyfile` is correct.
+- Verify the compose file for wg-easy and Caddy is correct.
+
+Notes about `curl`: 
+
+- `-k` is to ignore SSL validation
+- `-v` is for verbosity
+
+### Docker containers should be recreated
+
+To completely delete Docker containers (containers and volumes) created with `docker compose up` :
+
+```bash
+docker compose down -v
+```
+
+## Future improvements
+
+- Automatically assign domain to IPs with the DHCP-based hostnames feature of AdGuard Home web GUI (*Settings > DHCP Settings*) 
 
 ## References
 
@@ -423,3 +434,10 @@ dig @10.1.1.6 proxmox-vm.internal
 - [AdGuard Home Getting started](https://adguard-dns.io/kb/es/adguard-home/getting-started/#installation)
 - Claude 😆
 - ChatGPT 😆 
+
+<!-- 
+TODO: explain how to add new restricted VPN clients
+TODO: configure wg-easy with NPM as proxy, remove all caddy configurations in Docker compose YAML
+-->
+
+
