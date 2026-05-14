@@ -172,7 +172,7 @@ Instructions below explains how to set wg-easy with **Caddy** with automatically
     wg.internal {
             # since the container will share the network with wg-easy
             # we can use the proper container name
-            reverse_proxy wg-easy:51821
+            reverse_proxy wg-easy.internal:51821
             tls internal
     }
     ```
