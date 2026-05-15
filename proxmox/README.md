@@ -278,7 +278,7 @@ To install and configure NPM follow these steps:
 
 ## DNS Server
 
-1. Install AdGuard Home as described in the [Getting started](https://adguard-dns.io/kb/es/adguard-home/getting-started/#installation) section of the official documentation.
+1. Install AdGuard Home as described in the [Getting started](https://adguard-dns.io/kb/es/adguard-home/getting-started/#installation) section of the Adguard Home official documentation.
 2. Change WiFi router configuration to use **10.1.1.6** as **primary** DNS server (for primary set 8.8.8.8 or another one).
 3. If not added before, add a NAT rule in the `/etc/network/interfaces` of the **Proxmox node** to forward TCP traffic on 80 to the corresponding VM and ports with AdGuard Home web GUI :
    
@@ -295,7 +295,7 @@ To install and configure NPM follow these steps:
 **After creating any VM or LXC, set the DNS server**:
 
 ```bash
-echo "nameserver 8.8.8.8" > /etc/resolv.conf
+echo "nameserver 10.1.1.6" > /etc/resolv.conf
 ```
 
 ## Home Assistant
