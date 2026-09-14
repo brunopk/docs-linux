@@ -111,3 +111,10 @@ Without copying errors (blocks with errors will be copied as 0s)
 ```
 dd if=/path/to/input of=/path/to/output conv=noerrors
 ```
+## `du`
+
+List folders inside a specific directory, sorted biggest → smallest
+
+```
+du -h --max-depth=1 /path/to/folder | sort -hr
+```
