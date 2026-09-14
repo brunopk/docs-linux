@@ -89,3 +89,25 @@ Similar to previous examples to copy over SSH.
 
 - [Specify identity file (id_rsa) with rsync](https://unix.stackexchange.com/questions/127352/specify-identity-file-id-rsa-with-rsync)
 - [Rsync man](https://download.samba.org/pub/rsync/rsync.1)
+
+## `date`
+
+Get an UTC date in ISO format :
+
+```
+date -u +"%Y-%m-%dT%H:%M:%SZ"
+```
+
+## `dd`
+
+With progress
+
+```bash
+dd if=/path/to/input of=/path/to/output status=progress
+```
+
+Without copying errors (blocks with errors will be copied as 0s)
+
+```
+dd if=/path/to/input of=/path/to/output conv=noerrors
+```
