@@ -27,7 +27,7 @@ sed_replace "ARG DB_USER=your_user" "ARG DB_USER=$DB_USER" build/Dockerfile
 
 For all the examples below, asume there exist src (source) and dest (destination) folders.
 
-### Example 1
+**Example 1**
 
 ```
 rsync --recursive --delete src dest
@@ -35,7 +35,7 @@ rsync --recursive --delete src dest
 
 `--delete`: to delete files/folders which exist in dest/ but don't exist in src/ 
 
-### Example 2
+**Example 2**
 
 
 ```
@@ -44,7 +44,7 @@ rsync --recursive --delete src/ dest
 
 Same as 1 but without creating dest/src/ folder (just copying src content to dest):
 
-### Example 3
+**Example 3**
 
 ```
 $ rsync -aP --delete src/ dest
@@ -54,7 +54,7 @@ $ rsync -aP --delete src/ dest
 
 `-P`: show progress.
 
-## Example 4
+**Example 4**
 
 Over SSH and using custom keys ($HOME/.ssh/somekey):
 
@@ -66,7 +66,8 @@ rsync -Pav -e "ssh -i $HOME/.ssh/somekey" username@hostname:/from/dir/ /to/dir/
 
 `-v`: verbosity.
 
-### Example 5
+
+**Example 5**
 
 ```
 rsync --recursive \
@@ -84,8 +85,7 @@ Similar to previous examples to copy over SSH.
 
 `--exclude`: indicates a folder or file to exclude.
 
-
-## More information
+**More information**
 
 - [Specify identity file (id_rsa) with rsync](https://unix.stackexchange.com/questions/127352/specify-identity-file-id-rsa-with-rsync)
 - [Rsync man](https://download.samba.org/pub/rsync/rsync.1)
