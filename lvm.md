@@ -41,7 +41,7 @@ Initially:
 0 716718080 linear 8:18 29362176
 ```
 
-*8:18 was /dev/sdb, which no longer existed*.
+`8:18 was /dev/sdb`, which no longer existed.
 
 Confirm the current disk
 
