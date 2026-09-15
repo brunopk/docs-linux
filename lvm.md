@@ -9,9 +9,11 @@ lvs -o lv_name,vg_name,lv_attr,lv_size,devices
 
 Found:
 
-VG: vg
-LV: home
-PV: /dev/sdc2
+VG: `vg`
+
+LV: `home`
+
+PV: `/dev/sdc2`
 
 Check the physical PV
 
@@ -19,7 +21,7 @@ Check the physical PV
 dd if=/dev/sdc2 of=/dev/null bs=4096 count=1 iflag=direct
 ```
 
-This succeeded, confirming /dev/sdc2 was readable.
+This succeeded, confirming `/dev/sdc2` was readable.
 
 Test the LV
 
