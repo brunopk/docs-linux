@@ -37,9 +37,11 @@ dmsetup table /dev/mapper/vg-home
 
 Initially:
 
+```
 0 716718080 linear 8:18 29362176
+```
 
-8:18 was /dev/sdb, which no longer existed.
+*8:18 was /dev/sdb, which no longer existed*.
 
 Confirm the current disk
 
@@ -49,7 +51,9 @@ lsblk -o NAME,MAJ:MIN,SIZE,TYPE,MOUNTPOINTS
 
 Current PV:
 
+```
 sdc2  8:34  365.8G  part
+```
 
 Check that nothing was actively using the mount
 
@@ -79,7 +83,9 @@ dmsetup table /dev/mapper/vg-home
 
 Now:
 
+```
 0 716718080 linear 8:34 29362176
+```
 
 Correctly pointing to /dev/sdc2.
 
